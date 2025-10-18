@@ -2,25 +2,46 @@ import sqlite3
 import os
 
 class Database:
-    def __init__(self):
-        # Configurar path de la base de datos
-        base_dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
-        self.db_path = os.path.join(base_dir, "database", "gesfact.db")
-        
-        # Asegurar que la carpeta database existe
-        database_dir = os.path.dirname(self.db_path)
-        if not os.path.exists(database_dir):
-            os.makedirs(database_dir)
-        
-        # SOLO crear conexión, NO crear tablas aquí
-        # Las tablas serán creadas por auth_service
-        print("✅ Conexión a base de datos configurada")
-    
-    def get_connection(self):
-        """Obtener conexión a la base de datos"""
-        conn = sqlite3.connect(self.db_path)
-        conn.row_factory = sqlite3.Row  # Para acceso por nombre de columna
-        return conn
+    def __init__(self, db_path="gesfact.db"):
+        self.db_path = db_path
+        self._crear_tabla_usuarios()
 
-# Instancia global para que otros módulos la usen
+    def conectar(self):
+        return sqlite3.connect(self.db_path)
+
+    def _crear_tabla_usuarios(self):
+        with self.conectar() as conn:
+            cursor = conn.cursor()
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS usuarios (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    nombre TEXT NOT NULL,
+                    email TEXT UNIQUE NOT NULL,
+                    password TEXT NOT NULL
+                )
+            """)
+            conn.commit()
+
+    def insertar_usuario(self, nombre, email, password):
+        with self.conectar() as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                "INSERT INTO usuarios (nombre, email, password) VALUES (?, ?, ?)",
+                (nombre, email, password)
+            )
+            conn.commit()
+
+    def obtener_usuario_por_email(self, email):
+        with self.conectar() as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                "SELECT id, nombre, email, password FROM usuarios WHERE email = ?",
+                (email,)
+            )
+            row = cursor.fetchone()
+            if row:
+                return {"id": row[0], "nombre": row[1], "email": row[2], "password": row[3]}
+            return None
+
+# Instancia global
 db = Database()
