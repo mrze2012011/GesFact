@@ -1,71 +1,34 @@
 import customtkinter as ctk
+from tkinter import messagebox
 
 class DashboardWindow(ctk.CTk):
-    def __init__(self, navigation_callback=None):
+    def __init__(self, usuario):
         super().__init__()
-        self.navigation_callback = navigation_callback
-        
-        self.title("GesFact - Dashboard")
-        self.geometry("800x600")
-        
-        self.grid_columnconfigure(0, weight=1)
-        self.grid_rowconfigure(1, weight=1)
-        
-        self._crear_header()
-        self._crear_contenido()
-    
-    def _crear_header(self):
-        self.header_frame = ctk.CTkFrame(self, height=60)
-        self.header_frame.grid(row=0, column=0, sticky="ew", padx=0, pady=0)
-        self.header_frame.grid_columnconfigure(0, weight=1)
-        
-        self.logo_header = ctk.CTkLabel(
-            self.header_frame, 
-            text="GesFact", 
-            font=ctk.CTkFont(size=20, weight="bold")
-        )
-        self.logo_header.grid(row=0, column=0, padx=20, pady=10, sticky="w")
-        
-        self.user_icon = ctk.CTkButton(
-            self.header_frame,
-            text="👤",
-            width=40,
-            height=40,
-            fg_color="transparent",
-            hover_color="#2b2b2b"
-        )
-        self.user_icon.grid(row=0, column=1, padx=20, pady=10, sticky="e")
-    
-    def _crear_contenido(self):
-        self.content_frame = ctk.CTkFrame(self)
-        self.content_frame.grid(row=1, column=0, sticky="nsew", padx=0, pady=0)
-        self.content_frame.grid_columnconfigure(0, weight=1)
-        self.content_frame.grid_rowconfigure(1, weight=1)
-        
-        self.logo_central = ctk.CTkLabel(
-            self.content_frame, 
-            text="GesFact", 
-            font=ctk.CTkFont(size=48, weight="bold")
-        )
-        self.logo_central.grid(row=0, column=0, pady=(100, 50))
-        
-        self.botones_frame = ctk.CTkFrame(self.content_frame, fg_color="transparent")
-        self.botones_frame.grid(row=1, column=0, pady=(0, 100))
-        
-        botones = [
-            "Facturación",
-            "Clientes", 
-            "Gastos",
-            "Reportes",
-            "Configuración"
-        ]
-        
-        for i, texto in enumerate(botones):
-            btn = ctk.CTkButton(
-                self.botones_frame,
-                text=texto,
-                width=150,
-                height=40,
-                state="normal"
-            )
-            btn.grid(row=i//3, column=i%3, padx=10, pady=10)
+        self.title("GesFact - Panel Principal")
+        self.geometry("900x600")
+
+        # Mensaje de bienvenida
+        label = ctk.CTkLabel(self, text=f"Bienvenido, {usuario['nombre']}", font=("Arial", 22, "bold"))
+        label.pack(pady=30)
+
+        # Botones de ejemplo
+        btn_ventas = ctk.CTkButton(self, text="Registrar Venta", command=self._registrar_venta)
+        btn_ventas.pack(pady=10)
+
+        btn_clientes = ctk.CTkButton(self, text="Ver Clientes", command=self._ver_clientes)
+        btn_clientes.pack(pady=10)
+
+        btn_salir = ctk.CTkButton(self, text="Cerrar Sesión", fg_color="red", command=self._cerrar_sesion)
+        btn_salir.pack(pady=20)
+
+    def _registrar_venta(self):
+        messagebox.showinfo("Registrar Venta", "Aquí podrás registrar una nueva venta.")
+
+    def _ver_clientes(self):
+        messagebox.showinfo("Clientes", "Aquí se mostraría la lista de clientes.")
+
+    def _cerrar_sesion(self):
+        from src.ui.login_window import LoginWindow
+        self.destroy()
+        login = LoginWindow()
+        login.mainloop()

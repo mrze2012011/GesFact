@@ -1,6 +1,9 @@
 import customtkinter as ctk
 from src.services.auth_service import auth_service
 from src.ui.registro_window import RegistroWindow
+from tkinter import messagebox
+from src.ui.dashboard_window import DashboardWindow  # ✅ Import del dashboard
+
 
 class LoginWindow(ctk.CTk):
     def __init__(self):
@@ -24,9 +27,13 @@ class LoginWindow(ctk.CTk):
         email = self.email_entry.get()
         password = self.password_entry.get()
         exito, resultado = auth_service.login_usuario(email, password)
+
         if exito:
-            self.mensaje.configure(text=f"✅ Bienvenido {resultado['nombre']}")
-            # Aquí podrías abrir tu DashboardWindow
+            # Muestra mensaje y abre el dashboard
+            messagebox.showinfo("Éxito", f"Bienvenido {resultado['nombre']}")
+            self.destroy()  # Cierra la ventana de login
+            dashboard = DashboardWindow(resultado)
+            dashboard.mainloop()
         else:
             self.mensaje.configure(text=f"❌ {resultado}")
 
