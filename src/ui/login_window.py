@@ -1,44 +1,109 @@
 import customtkinter as ctk
 from src.services.auth_service import auth_service
 from src.ui.registro_window import RegistroWindow
-from tkinter import messagebox
-from src.ui.dashboard_window import DashboardWindow  # ✅ Import del dashboard
-
 
 class LoginWindow(ctk.CTk):
     def __init__(self):
         super().__init__()
-        self.title("Inicio de sesión - GesFact")
-        self.geometry("400x350")
+        self.title("GesFact - Inicio de Sesión")
+        self.geometry("450x500")
+        self.resizable(False, False)
+        ctk.set_appearance_mode("light")
+        ctk.set_default_color_theme("blue")
 
-        ctk.CTkLabel(self, text="Iniciar Sesión", font=("Arial", 18)).pack(pady=20)
-        self.email_entry = ctk.CTkEntry(self, placeholder_text="Correo electrónico")
-        self.email_entry.pack(pady=10)
-        self.password_entry = ctk.CTkEntry(self, placeholder_text="Contraseña", show="*")
-        self.password_entry.pack(pady=10)
+        # ====== Estilo general ======
+        self.configure(fg_color="#f5f6fa")  # fondo claro general
 
-        ctk.CTkButton(self, text="Iniciar sesión", command=self._iniciar_sesion).pack(pady=10)
-        ctk.CTkButton(self, text="Crear cuenta", command=self._abrir_registro).pack(pady=5)
+        # ====== Contenedor central ======
+        self.main_frame = ctk.CTkFrame(self, corner_radius=15, fg_color="white")
+        self.main_frame.pack(pady=80, padx=60, fill="both", expand=False)
 
-        self.mensaje = ctk.CTkLabel(self, text="")
-        self.mensaje.pack(pady=10)
+        # ====== Título ======
+        self.title_label = ctk.CTkLabel(
+            self.main_frame,
+            text="Bienvenido a GesFact",
+            font=ctk.CTkFont(size=22, weight="bold"),
+            text_color="#2f3640"
+        )
+        self.title_label.pack(pady=(25, 10))
 
+        self.subtitle_label = ctk.CTkLabel(
+            self.main_frame,
+            text="Inicia sesión para continuar",
+            font=ctk.CTkFont(size=14),
+            text_color="#718093"
+        )
+        self.subtitle_label.pack(pady=(0, 20))
+
+        # ====== Campos ======
+        self.email_entry = ctk.CTkEntry(
+            self.main_frame,
+            placeholder_text="Correo electrónico",
+            height=40,
+            corner_radius=10
+        )
+        self.email_entry.pack(pady=10, padx=40)
+
+        self.password_entry = ctk.CTkEntry(
+            self.main_frame,
+            placeholder_text="Contraseña",
+            show="•",
+            height=40,
+            corner_radius=10
+        )
+        self.password_entry.pack(pady=10, padx=40)
+
+        # ====== Botones ======
+        self.login_button = ctk.CTkButton(
+            self.main_frame,
+            text="Iniciar Sesión",
+            height=40,
+            corner_radius=10,
+            font=ctk.CTkFont(size=14, weight="bold"),
+            fg_color="#0078d7",
+            hover_color="#005fa3",
+            command=self._iniciar_sesion
+        )
+        self.login_button.pack(pady=(20, 10), padx=40, fill="x")
+
+        self.register_button = ctk.CTkButton(
+            self.main_frame,
+            text="Crear cuenta",
+            height=38,
+            corner_radius=10,
+            fg_color="white",
+            text_color="#0078d7",
+            border_width=2,
+            border_color="#0078d7",
+            hover_color="#f0f3f7",
+            command=self._abrir_registro
+        )
+        self.register_button.pack(pady=(0, 15), padx=40, fill="x")
+
+        # ====== Mensaje ======
+        self.mensaje = ctk.CTkLabel(self.main_frame, text="", text_color="#e84118")
+        self.mensaje.pack(pady=5)
+
+    # ====== Lógica de login ======
     def _iniciar_sesion(self):
         email = self.email_entry.get()
         password = self.password_entry.get()
         exito, resultado = auth_service.login_usuario(email, password)
-
         if exito:
-            # Muestra mensaje y abre el dashboard
-            messagebox.showinfo("Éxito", f"Bienvenido {resultado['nombre']}")
-            self.destroy()  # Cierra la ventana de login
-            dashboard = DashboardWindow(resultado)
-            dashboard.mainloop()
+            self.mensaje.configure(text=f"✅ Bienvenido {resultado['nombre']}", text_color="#44bd32")
+            self.after(1000, lambda: self._abrir_dashboard(resultado))  # ← aquí enviamos el usuario
         else:
-            self.mensaje.configure(text=f"❌ {resultado}")
+            self.mensaje.configure(text=f"❌ {resultado}", text_color="#e84118")
 
+    def _abrir_dashboard(self, usuario):
+        from src.ui.dashboard_window import DashboardWindow
+        self.withdraw()
+        dashboard = DashboardWindow(usuario, self)
+        dashboard.mainloop()
+
+
+    # ====== Abrir registro ======
     def _abrir_registro(self):
-        # Abrir la ventana de registro sin cerrar el login
-        self.withdraw()  # Oculta la ventana de login
+        self.withdraw()
         registro = RegistroWindow(self)
         registro.mainloop()
