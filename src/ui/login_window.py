@@ -92,6 +92,7 @@ class LoginWindow(ctk.CTk):
         if exito:
             self.mensaje.configure(text=f"✅ Bienvenido {resultado['nombre']}", text_color="#44bd32")
             self.after(1000, lambda: self._abrir_dashboard(resultado))  # ← aquí enviamos el usuario
+            
         else:
             self.mensaje.configure(text=f"❌ {resultado}", text_color="#e84118")
 
