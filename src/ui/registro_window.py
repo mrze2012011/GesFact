@@ -1,10 +1,11 @@
 import customtkinter as ctk
 
 class RegistroWindow(ctk.CTkToplevel):
-    def __init__(self, parent):
+    def __init__(self, parent, navigation_callback=None):
         super().__init__(parent)
         
         self.parent = parent
+        self.navigation_callback = navigation_callback
         self.title("GesFact - Crear Cuenta")
         self.geometry("400x600")
         self.resizable(False, False)
@@ -12,7 +13,6 @@ class RegistroWindow(ctk.CTkToplevel):
         self.grid_columnconfigure(0, weight=1)
         self._crear_widgets()
         
-        # Centrar ventana
         self.transient(parent)
         self.grab_set()
     
@@ -39,11 +39,9 @@ class RegistroWindow(ctk.CTkToplevel):
         
         self.entries = {}
         for i, (label, tipo) in enumerate(campos):
-            # Label
             lbl = ctk.CTkLabel(self.form_frame, text=label + ":")
             lbl.grid(row=i*2, column=0, padx=20, pady=(20 if i==0 else 15, 5), sticky="w")
             
-            # Entry
             show_char = "•" if tipo == "password" else ""
             entry = ctk.CTkEntry(
                 self.form_frame, 
@@ -53,7 +51,6 @@ class RegistroWindow(ctk.CTkToplevel):
             entry.grid(row=i*2+1, column=0, padx=20, pady=(0, 0), sticky="ew")
             self.entries[label] = entry
         
-        # Botón crear cuenta
         self.registro_button = ctk.CTkButton(
             self.form_frame, 
             text="Crear Cuenta",
@@ -73,11 +70,14 @@ class RegistroWindow(ctk.CTkToplevel):
         # TODO: Validar datos y conectar con auth_service
         print("Datos registro:", datos)
         
-        # Simulación de registro exitoso
         if all(datos.values()):
-            self.destroy()
-            self.parent.deiconify()  # Muestra ventana login again
+            if self.navigation_callback:
+                self.navigation_callback('login')
+            else:
+                self.destroy()
+                self.parent.deiconify()
     
     def destroy(self):
-        self.parent.deiconify()
+        if self.parent:
+            self.parent.deiconify()
         super().destroy()

@@ -1,7 +1,5 @@
 """
 Paquete de modelos de datos para GesFact
 """
-
-from .usuario import Usuario
-
-__all__ = ['Usuario']
+# Ya no exportamos Usuario since fue eliminado
+__all__ = []  # Vacío since no hay modelos por ahora

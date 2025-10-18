@@ -1,16 +1,13 @@
-import sqlite3
 import hashlib
-import os
-from datetime import datetime
+from src.database.database import db
 
 class AuthService:
-    def __init__(self, db_path):
-        self.db_path = db_path
+    def __init__(self):
         self._crear_tabla_usuarios()
     
     def _crear_tabla_usuarios(self):
         """Crea la tabla de usuarios si no existe"""
-        conn = sqlite3.connect(self.db_path)
+        conn = db.get_connection()
         cursor = conn.cursor()
         
         cursor.execute('''
@@ -31,15 +28,35 @@ class AuthService:
         """Genera el hash de la contraseña"""
         return hashlib.sha256(password.encode()).hexdigest()
     
-    def registrar_usuario(self, nombre_completo, email, password, nombre_negocio):
-        """Registra un nuevo usuario en la base de datos"""
+    def _validar_email(self, email):
+        """Valida formato básico de email"""
+        return '@' in email and '.' in email and len(email) > 5
+    
+    def _validar_password(self, password):
+        """Valida fortaleza de contraseña"""
+        return len(password) >= 6
+    
+    def registrar_usuario(self, nombre_completo, email, password, confirm_password, nombre_negocio):
+        """Registra un nuevo usuario con validaciones"""
+        # Validaciones
+        if not all([nombre_completo, email, password, confirm_password, nombre_negocio]):
+            return False, "Todos los campos son obligatorios"
+        
+        if not self._validar_email(email):
+            return False, "Formato de email inválido"
+        
+        if not self._validar_password(password):
+            return False, "La contraseña debe tener al menos 6 caracteres"
+        
+        if password != confirm_password:
+            return False, "Las contraseñas no coinciden"
+        
         try:
-            conn = sqlite3.connect(self.db_path)
+            conn = db.get_connection()
             cursor = conn.cursor()
             
             # Verificar si el email ya existe
-            cursor.execute("SELECT id FROM usuarios WHERE email = ?", (email,))
-            if cursor.fetchone():
+            if self.verificar_email_existente(email):
                 return False, "El email ya está registrado"
             
             # Hashear contraseña
@@ -55,13 +72,20 @@ class AuthService:
             conn.close()
             return True, "Usuario registrado exitosamente"
             
-        except sqlite3.Error as e:
-            return False, f"Error de base de datos: {str(e)}"
+        except Exception as e:
+            return False, f"Error al registrar usuario: {str(e)}"
     
     def login_usuario(self, email, password):
         """Valida las credenciales del usuario"""
+        # Validaciones básicas
+        if not email or not password:
+            return False, "Email y contraseña son obligatorios"
+        
+        if not self._validar_email(email):
+            return False, "Formato de email inválido"
+        
         try:
-            conn = sqlite3.connect(self.db_path)
+            conn = db.get_connection()
             cursor = conn.cursor()
             
             # Buscar usuario por email
@@ -90,13 +114,13 @@ class AuthService:
             else:
                 return False, "Contraseña incorrecta"
                 
-        except sqlite3.Error as e:
-            return False, f"Error de base de datos: {str(e)}"
+        except Exception as e:
+            return False, f"Error al iniciar sesión: {str(e)}"
     
     def verificar_email_existente(self, email):
         """Verifica si un email ya está registrado"""
         try:
-            conn = sqlite3.connect(self.db_path)
+            conn = db.get_connection()
             cursor = conn.cursor()
             
             cursor.execute("SELECT id FROM usuarios WHERE email = ?", (email,))
@@ -105,14 +129,8 @@ class AuthService:
             conn.close()
             return existe
             
-        except sqlite3.Error:
+        except Exception:
             return False
 
 # Instancia global del servicio de autenticación
-# Se inicializará desde main.py con la ruta de la base de datos
-auth_service = None
-
-def inicializar_auth_service(db_path):
-    """Inicializa el servicio de autenticación con la ruta de la base de datos"""
-    global auth_service
-    auth_service = AuthService(db_path)
+auth_service = AuthService()

@@ -1,15 +1,14 @@
 import customtkinter as ctk
-from .registro_window import RegistroWindow
 
 class LoginWindow(ctk.CTk):
-    def __init__(self):
+    def __init__(self, navigation_callback=None):
         super().__init__()
+        self.navigation_callback = navigation_callback
         
         self.title("GesFact - Iniciar Sesión")
         self.geometry("400x500")
         self.resizable(False, False)
         
-        # Configurar grid
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(1, weight=1)
         
@@ -73,12 +72,13 @@ class LoginWindow(ctk.CTk):
         
         # Simulación de login exitoso
         if email and password:
-            from .dashboard_window import DashboardWindow
-            self.destroy()
-            dashboard = DashboardWindow()
-            dashboard.mainloop()
+            if self.navigation_callback:
+                self.navigation_callback('dashboard')
+            else:
+                self.destroy()
     
     def _abrir_registro(self):
-        self.withdraw()  # Oculta ventana login
-        registro_window = RegistroWindow(self)
-        registro_window.mainloop()
+        if self.navigation_callback:
+            self.navigation_callback('registro')
+        else:
+            self.destroy()
