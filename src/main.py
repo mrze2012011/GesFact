@@ -3,6 +3,7 @@ Punto de entrada principal de GesFact
 Persona 3 - Versión básica para testing
 """
 from src.database.database import db
+from models.usuario import Usuario
 
 def main():
     print("🚀 Iniciando GesFact...")
